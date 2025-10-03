@@ -1,0 +1,1 @@
+# macsnap2html-enhanced
