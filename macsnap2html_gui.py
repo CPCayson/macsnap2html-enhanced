@@ -15,6 +15,11 @@ from pathlib import Path
 from datetime import datetime
 import webbrowser
 
+# Fix for macOS py2app Tkinter menu crash
+if sys.platform == 'darwin' and getattr(sys, 'frozen', False):
+    # Running in a py2app bundle on macOS
+    os.environ['TK_SILENCE_DEPRECATION'] = '1'
+
 def format_size(size_bytes, decimal_places=1):
     """Convert bytes to human readable format with configurable decimal places"""
     if size_bytes == 0:
@@ -1197,16 +1202,21 @@ def generate_enhanced_html(scanner, root_path, output_file, title=None):
 
     with open(output_file, 'w', encoding='utf-8') as f:
         f.write(html_template)
-
 class MacSnap2HTMLApp:
     def __init__(self, root):
         self.root = root
         self.root.title("MacSnap2HTML Enhanced")
-        # Make window full screen
-        self.root.state('zoomed')
-        self.root.attributes('-fullscreen', True)
-        # Allow user to exit fullscreen with Escape key
-        self.root.bind('<Escape>', lambda e: self.root.attributes('-fullscreen', False))
+        
+        # Platform-specific window setup
+        if sys.platform == 'darwin':
+            # macOS - use regular window, not fullscreen (causes issues with py2app)
+            self.root.geometry("1200x800")
+        else:
+            # Windows - use fullscreen
+            self.root.state('zoomed')
+            self.root.attributes('-fullscreen', True)
+            self.root.bind('<Escape>', lambda e: self.root.attributes('-fullscreen', False))
+        
         self.root.minsize(1200, 800)
         self.root.resizable(True, True)
         
